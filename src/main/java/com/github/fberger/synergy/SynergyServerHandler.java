@@ -1,7 +1,5 @@
 package com.github.fberger.synergy;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.channel.Channel;
@@ -46,14 +44,9 @@ public class SynergyServerHandler extends SimpleChannelHandler {
 			break;
 		case CKeepAlive:
 			Log.d("keep alive received");
-			timer.newTimeout(new TimerTask() {
-				@Override
-				public void run(Timeout timeout) throws Exception {
-					channel.write(new Message(MessageType.CKeepAlive));
-				}
-			}, KEEP_ALIVE_INTERVAL, TimeUnit.MILLISECONDS);
 			break;
 		}
+		resetKeepAliveTimer(ctx);
 	}
 	
 	@Override
@@ -76,6 +69,21 @@ public class SynergyServerHandler extends SimpleChannelHandler {
 		Log.df("exception {0}", e);
 		Channel ch = e.getChannel();
 		ch.close();
+	}
+	
+	private void resetKeepAliveTimer(final ChannelHandlerContext ctx) {
+		Timeout timeout = (Timeout) ctx.getAttachment();
+		if (timeout != null) {
+			timeout.cancel();
+		}
+		timeout = timer.newTimeout(new TimerTask() {
+			@Override
+			public void run(Timeout timeout) throws Exception {
+				Channel channel = ctx.getChannel();
+				channel.write(new Message(MessageType.CKeepAlive));
+			}
+		}, KEEP_ALIVE_INTERVAL, TimeUnit.MILLISECONDS);
+		ctx.setAttachment(timeout);
 	}
 	
 }
