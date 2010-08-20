@@ -20,7 +20,13 @@ public class SynergyServerHandler extends SimpleChannelHandler {
 	private final Timer timer = new HashedWheelTimer();
 	
 	public final static long KEEP_ALIVE_INTERVAL = 3000;
+
+	private final SynergyServer synergyServer;
 	
+	public SynergyServerHandler(SynergyServer synergyServer) {
+		this.synergyServer = synergyServer;
+	}
+
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
 			throws Exception {
@@ -30,6 +36,7 @@ public class SynergyServerHandler extends SimpleChannelHandler {
 		switch (message.getType()) {
 		case HelloBack:
 			Log.df("name: {2}, version{0}{1}", message.getArguments());
+			synergyServer.addClient(new SynergyClient(ctx, (String)message.getArguments()[1]));
 			channel.write(new Message(MessageType.QInfo));
 			break;	
 		case DInfo:
