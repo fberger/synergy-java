@@ -18,19 +18,27 @@ public class SynergyServer implements ListenerSupport<ServerEvent> {
 	
 	private final EventListenerList<ServerEvent> listeners = new EventListenerList<ServerEvent>();
 	
-	private final Set<SynergyClient> clients = new CopyOnWriteArraySet<SynergyClient>(); 
+	private final Set<SynergyClient> clients = new CopyOnWriteArraySet<SynergyClient>();
+
+	private final ServerBootstrap bootstrap;
 	
-	public void start() {
+	public SynergyServer() {
 		NioServerSocketChannelFactory socketChannelFactory = new NioServerSocketChannelFactory(Executors.newCachedThreadPool(),
 				Executors.newCachedThreadPool());
-		ServerBootstrap bootstrap = new ServerBootstrap(socketChannelFactory);
+		bootstrap = new ServerBootstrap(socketChannelFactory);
 		
 		bootstrap.setPipelineFactory(new SynergyChannelPipelineFactory(this));
 		
 		bootstrap.setOption("child.tcpNoDelay", true);
 		bootstrap.setOption("child.keepAlive", true);
-		
+	}
+	
+	public void start() {
 		bootstrap.bind(new InetSocketAddress(24800));
+	}
+	
+	public void stop() {
+		bootstrap.releaseExternalResources();
 	}
 	
 	public static void main(String[] args) {
@@ -64,4 +72,5 @@ public class SynergyServer implements ListenerSupport<ServerEvent> {
 		}
 		return null;
 	}
+
 }
