@@ -36,11 +36,13 @@ public class SynergyServerHandler extends SimpleChannelHandler {
 		switch (message.getType()) {
 		case HelloBack:
 			Log.df("name: {2}, version{0}{1}", message.getArguments());
-			synergyServer.addClient(new SynergyClient(ctx, (String)message.getArguments()[2]));
 			channel.write(new Message(MessageType.QInfo));
+			ctx.setAttachment(message.getArguments()[2]); // store client name
 			break;	
 		case DInfo:
 			Log.df("x{0}, y{1}, w{2}, h{3}, warp size{4}, mouse x{5}, mouse y{6}", message.getArguments());
+			synergyServer.addClient(new SynergyClient(ctx, (String)ctx.getAttachment()));
+			// TODO add data from dinfo message
 			channel.write(new Message(MessageType.CInfoAck));
 			channel.write(new Message(MessageType.CResetOptions));
 			//channel.write(new Message(MessageType.DSetOptions, Collections.emptyList()));
